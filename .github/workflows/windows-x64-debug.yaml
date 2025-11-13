@@ -30,6 +30,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+
+      - name: Set up Visual Studio shell
+        uses: egor-tensin/vs-shell@v2
+        with:
+          arch: x64
+
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
