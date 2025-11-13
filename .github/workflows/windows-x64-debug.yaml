@@ -11,9 +11,7 @@ permissions:
   contents: write
 
 env:
-  WHISPER_VERSION:
-    |- # Enter release tag name or version name in workflow_dispatch
-    ${{ github.event.release.tag_name || github.event.inputs.version || '1.8.2' }}
+  WHISPER_VERSION: ${{ github.event.release.tag_name || github.event.inputs.version || '1.8.2' }}
 
 jobs:
   windows_x64_debug:
@@ -62,16 +60,9 @@ jobs:
         if: steps.cache-build-result.outputs.cache-hit != 'true'
         uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '12.6.0'
+          cuda: '12.9.1'
           method: 'network'
-          sub-packages: '[
-            "nvcc",
-            "cudart",
-            "cublas",
-            "cublas_dev",
-            "thrust",
-            "visual_studio_integration"
-          ]'
+          sub-packages: '["nvcc", "cudart", "cublas", "cublas_dev", "thrust", "visual_studio_integration"]'
 
       - name: Setup vcpkg
         if: steps.cache-build-result.outputs.cache-hit != 'true'
