@@ -1,0 +1,4 @@
+[submodule "whisper.cpp"]
+	path = whisper.cpp
+	url = https://github.com/ggml-org/whisper.cpp.git
+	branch = 4979e04f5dcaccb36057e059bbaed8a2f5288315

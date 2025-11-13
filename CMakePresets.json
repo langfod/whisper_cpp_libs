@@ -1,0 +1,80 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 18,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/release",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_COMPILER": "cl.exe",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_CUDA_RUNTIME_LIBRARY": "Static",
+        "GGML_CUDA_FORCE_VERSION": "12.9",
+        "CUDA_TOOLKIT_ROOT_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.9",
+
+        "CMAKE_CXX_FLAGS": "/permissive- /Zc:preprocessor /EHsc /MP16 /W4 /utf-8 /bigobj",
+        "CMAKE_C_FLAGS_RELEASE": "/DWIN32_LEAN_AND_MEAN /DNOMINMAX /DUNICODE /D_UNICODE",
+        "CMAKE_CXX_FLAGS_RELEASE": "/DWIN32_LEAN_AND_MEAN /DNOMINMAX /DUNICODE /D_UNICODE /bigobj",
+
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+        "CMAKE_CXX_EXTENSIONS": "OFF"
+      }
+    },
+    {
+      "name": "debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/debug",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "cl.exe",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_CUDA_RUNTIME_LIBRARY": "Static",
+        "GGML_CUDA_FORCE_VERSION": "12.9",
+        "CUDA_TOOLKIT_ROOT_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.9",
+
+        "CMAKE_CXX_FLAGS": "/permissive- /Zc:preprocessor /EHsc /MP16 /W4 /utf-8 /bigobj",
+        "CMAKE_C_FLAGS_DEBUG": "/DWIN32_LEAN_AND_MEAN /DNOMINMAX /DUNICODE /D_UNICODE",
+        "CMAKE_CXX_FLAGS_DEBUG": "/DWIN32_LEAN_AND_MEAN /DNOMINMAX /DUNICODE /D_UNICODE /bigobj",
+
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+        "CMAKE_CXX_EXTENSIONS": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "displayName": "Build Release"
+    },
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "displayName": "Build Debug"
+    }
+  ]
+}

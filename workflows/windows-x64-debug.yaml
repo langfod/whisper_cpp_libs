@@ -1,0 +1,147 @@
+name: windows-x64-debug
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version information (e.g., 1.8.2)"
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  WHISPER_VERSION:
+    |- # Enter release tag name or version name in workflow_dispatch
+    ${{ github.event.release.tag_name || github.event.inputs.version || '1.8.2' }}
+
+jobs:
+  windows_x64_debug:
+    name: Windows x64 whisper.cpp ${{ matrix.build_type }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022]
+        python-version: ["3.10"]
+        build_type: ["Debug"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache build result for ${{ env.WHISPER_VERSION }}
+        id: cache-build-result
+        uses: actions/cache@v4
+        with:
+          path: whisper-cpp-win-x64-static_lib-${{ matrix.build_type }}-${{ env.WHISPER_VERSION }}
+          key: whisper-cpp-win-x64-${{ matrix.build_type }}-${{ env.WHISPER_VERSION }}-cache-v1
+
+      - name: ccache
+        if: steps.cache-build-result.outputs.cache-hit != 'true'
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ matrix.os }}-x64-${{ matrix.build_type }}
+
+      - name: Update whisper.cpp submodule
+        if: steps.cache-build-result.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          echo ${{ env.WHISPER_VERSION }} > WHISPER_VERSION
+          git submodule update --init --recursive --depth=1 whisper.cpp
+          cd whisper.cpp
+          git fetch origin tag v${{ env.WHISPER_VERSION }}
+          git checkout v${{ env.WHISPER_VERSION }}
+
+      - name: Setup CUDA Toolkit
+        if: steps.cache-build-result.outputs.cache-hit != 'true'
+        uses: Jimver/cuda-toolkit@v0.2.16
+        with:
+          cuda: '12.6.0'
+          method: 'network'
+          sub-packages: '[
+            "nvcc",
+            "cudart",
+            "cublas",
+            "cublas_dev",
+            "thrust",
+            "visual_studio_integration"
+          ]'
+
+      - name: Setup vcpkg
+        if: steps.cache-build-result.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git
+          cd vcpkg
+          ./bootstrap-vcpkg.bat
+          echo "VCPKG_ROOT=$GITHUB_WORKSPACE/vcpkg" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        if: steps.cache-build-result.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          python3 -m pip install cmake ninja
+          cmake --version
+          ninja --version
+
+      - name: Build whisper.cpp for Windows x64 ${{ matrix.build_type }}
+        if: steps.cache-build-result.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          cmake --version
+          
+          # Map build type to preset (Debug -> debug)
+          BUILD_PRESET=$(echo "${{ matrix.build_type }}" | tr '[:upper:]' '[:lower:]')
+          echo "Using preset: $BUILD_PRESET"
+          
+          # Configure
+          cmake -S . --preset=$BUILD_PRESET
+          
+          # Build
+          cmake --build --preset=$BUILD_PRESET
+
+      - name: Collect result
+        if: steps.cache-build-result.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          # Map build type to directory name
+          BUILD_DIR=$(echo "${{ matrix.build_type }}" | tr '[:upper:]' '[:lower:]')
+          
+          ls -lh build/$BUILD_DIR/whisper.cpp_static/
+          ls -lh build/$BUILD_DIR/whisper.cpp_static/include
+          ls -lh build/$BUILD_DIR/whisper.cpp_static/lib
+
+          dst=whisper-cpp-win-x64-static_lib-${{ matrix.build_type }}-${{ env.WHISPER_VERSION }}
+          mkdir $dst
+          cp -r build/$BUILD_DIR/whisper.cpp_static/* $dst/
+
+      - name: zip results
+        shell: bash
+        run: |
+          dst=whisper-cpp-win-x64-static_lib-${{ matrix.build_type }}-${{ env.WHISPER_VERSION }}
+          7z a -tzip $dst.zip $dst
+          ls -lh
+
+      - name: Upload v${{ env.WHISPER_VERSION }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file_glob: true
+          file: "./*.zip"
+          overwrite: true
+          repo_name: ${{ github.repository }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v${{ env.WHISPER_VERSION }}
+
+      - uses: actions/upload-artifact@v5
+        if: steps.cache-build-result.outputs.cache-hit != 'true'
+        with:
+          name: whisper-cpp-win-x64-static_lib-${{ matrix.build_type }}
+          path: whisper-cpp-win-x64-static_lib*.zip
