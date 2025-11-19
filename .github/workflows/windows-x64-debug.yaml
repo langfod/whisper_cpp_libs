@@ -76,15 +76,6 @@ jobs:
           method: 'network'
           sub-packages: '["nvcc", "cudart", "cublas", "cublas_dev", "thrust", "visual_studio_integration"]'
 
-      - name: Setup vcpkg
-        if: steps.cache-build-result.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          git clone https://github.com/Microsoft/vcpkg.git
-          cd vcpkg
-          ./bootstrap-vcpkg.bat
-          echo "VCPKG_ROOT=$GITHUB_WORKSPACE/vcpkg" >> $GITHUB_ENV
-
       - name: Install dependencies
         if: steps.cache-build-result.outputs.cache-hit != 'true'
         shell: bash

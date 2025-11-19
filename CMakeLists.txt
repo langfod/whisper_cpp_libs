@@ -23,7 +23,7 @@ set(WHISPER_ALL_WARNINGS OFF CACHE BOOL "Enable all compiler warnings" FORCE)
 # Disable extra dependencies
 set(WHISPER_CURL OFF CACHE BOOL "Disable curl" FORCE)
 set(WHISPER_SDL2 OFF CACHE BOOL "Disable SDL2" FORCE)
-set(WHISPER_FFMPEG ON CACHE BOOL "Enable FFmpeg" FORCE)
+set(WHISPER_FFMPEG OFF CACHE BOOL "Disable FFmpeg (not needed - examples are disabled)" FORCE)
 set(WHISPER_COREML OFF CACHE BOOL "Disable CoreML" FORCE)
 set(WHISPER_OPENVINO OFF CACHE BOOL "Disable OpenVINO" FORCE)
 
