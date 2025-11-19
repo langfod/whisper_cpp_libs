@@ -45,21 +45,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache build result for ${{ env.WHISPER_VERSION }}
-        id: cache-build-result
-        uses: actions/cache@v4
-        with:
-          path: whisper-cpp-win-x64-static_lib-${{ matrix.build_type }}-${{ env.WHISPER_VERSION }}
-          key: whisper-cpp-win-x64-${{ matrix.build_type }}-${{ env.WHISPER_VERSION }}-cache-v1
-
       - name: ccache
-        if: steps.cache-build-result.outputs.cache-hit != 'true'
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ matrix.os }}-x64-${{ matrix.build_type }}
 
       - name: Update whisper.cpp submodule
-        if: steps.cache-build-result.outputs.cache-hit != 'true'
         shell: bash
         run: |
           echo ${{ env.WHISPER_VERSION }} > WHISPER_VERSION
@@ -69,7 +60,6 @@ jobs:
           git checkout v${{ env.WHISPER_VERSION }}
 
       - name: Setup CUDA Toolkit
-        if: steps.cache-build-result.outputs.cache-hit != 'true'
         uses: Jimver/cuda-toolkit@v0.2.29
         with:
           cuda: '12.9.1'
@@ -77,7 +67,6 @@ jobs:
           sub-packages: '["nvcc", "cudart", "cublas", "cublas_dev", "thrust", "visual_studio_integration"]'
 
       - name: Install dependencies
-        if: steps.cache-build-result.outputs.cache-hit != 'true'
         shell: bash
         run: |
           python3 -m pip install cmake ninja
@@ -85,7 +74,6 @@ jobs:
           ninja --version
 
       - name: Build whisper.cpp for Windows x64 ${{ matrix.build_type }}
-        if: steps.cache-build-result.outputs.cache-hit != 'true'
         shell: bash
         run: |
           export CMAKE_CXX_COMPILER_LAUNCHER=ccache
@@ -103,7 +91,6 @@ jobs:
           cmake --build --preset=$BUILD_PRESET
 
       - name: Collect result
-        if: steps.cache-build-result.outputs.cache-hit != 'true'
         shell: bash
         run: |
           # Map build type to directory name
@@ -135,7 +122,6 @@ jobs:
           tag: v${{ env.WHISPER_VERSION }}
 
       - uses: actions/upload-artifact@v5
-        if: steps.cache-build-result.outputs.cache-hit != 'true'
         with:
           name: whisper-cpp-win-x64-static_lib-${{ matrix.build_type }}
           path: whisper-cpp-win-x64-static_lib*.zip
