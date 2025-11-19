@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.18)
-project(WhisperCppLibs VERSION 1.0 LANGUAGES C CXX CUDA)
+
+# CUDA support option - can be set via command line: -DCUDA_ENABLED=OFF
+option(CUDA_ENABLED "Enable CUDA support" ON)
+
+if(CUDA_ENABLED)
+    project(WhisperCppLibs VERSION 1.0 LANGUAGES C CXX CUDA)
+    message(STATUS "Building WITH CUDA support")
+else()
+    project(WhisperCppLibs VERSION 1.0 LANGUAGES C CXX)
+    message(STATUS "Building WITHOUT CUDA support")
+endif()
 
 # Output directory
 set(OUTPUT_BASE_DIR "${CMAKE_BINARY_DIR}/whisper.cpp_static")
@@ -47,15 +57,23 @@ if(MSVC)
     endforeach()
 endif()
 
-# Enable CUDA support
-set(GGML_CUDA ON CACHE BOOL "Enable CUDA support" FORCE)
-
-# Static CUDA runtime library - CRITICAL for compatibility
-set(CMAKE_CUDA_RUNTIME_LIBRARY "Static" CACHE STRING "CUDA runtime library" FORCE)
-
-# CUDA flags matching application
-set(CMAKE_CUDA_FLAGS "-allow-unsupported-compiler -Wno-deprecated-gpu-targets" CACHE STRING "CUDA flags" FORCE)
-set(CMAKE_CUDA_ARCHITECTURES "all-major" CACHE STRING "CUDA architectures" FORCE)
+# CUDA configuration
+if(CUDA_ENABLED)
+    # Enable CUDA support
+    set(GGML_CUDA ON CACHE BOOL "Enable CUDA support" FORCE)
+    
+    # Static CUDA runtime library - CRITICAL for compatibility
+    set(CMAKE_CUDA_RUNTIME_LIBRARY "Static" CACHE STRING "CUDA runtime library" FORCE)
+    
+    # CUDA flags matching application
+    set(CMAKE_CUDA_FLAGS "-allow-unsupported-compiler -Wno-deprecated-gpu-targets" CACHE STRING "CUDA flags" FORCE)
+    set(CMAKE_CUDA_ARCHITECTURES "all-major" CACHE STRING "CUDA architectures" FORCE)
+else()
+    # Disable CUDA support
+    set(GGML_CUDA OFF CACHE BOOL "Disable CUDA support" FORCE)
+    set(CMAKE_CUDA_FLAGS "" CACHE STRING "Clear CUDA flags" FORCE)
+    add_compile_definitions(WHISPER_USE_CUBLAS=0)
+endif()
 
 # Set output directory
 set(VARIANT_OUTPUT_DIR "${OUTPUT_BASE_DIR}")
@@ -166,7 +184,10 @@ message(STATUS "=== Whisper.cpp Build Configuration ===")
 message(STATUS "Output directory: ${VARIANT_OUTPUT_DIR}")
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "MSVC Runtime: ${CMAKE_MSVC_RUNTIME_LIBRARY}")
-message(STATUS "CUDA Runtime: ${CMAKE_CUDA_RUNTIME_LIBRARY}")
-message(STATUS "CUDA Architectures: ${CMAKE_CUDA_ARCHITECTURES}")
+message(STATUS "CUDA Enabled: ${CUDA_ENABLED}")
+if(CUDA_ENABLED)
+    message(STATUS "CUDA Runtime: ${CMAKE_CUDA_RUNTIME_LIBRARY}")
+    message(STATUS "CUDA Architectures: ${CMAKE_CUDA_ARCHITECTURES}")
+endif()
 message(STATUS "Static libraries: ON")
 message(STATUS "=======================================")

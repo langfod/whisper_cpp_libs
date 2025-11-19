@@ -41,10 +41,7 @@ CMake setup for building whisper.cpp as static libraries with both CPU and CUDA 
 
 ## Output Structure
 
-By default (or when `SKYRIMNET_OUTPUT_PATH` is set), libraries are output to:
 
-```
-$SKYRIMNET_OUTPUT_PATH/
 ├── cpu/
 │   ├── lib/
 │   │   ├── whisper_cpu.lib
@@ -84,31 +81,7 @@ cmake --install build/release-cuda
 ## CMake Options
 
 - `BUILD_VARIANT` - Specify "CPU" or "CUDA" variant (required)
-- `SKYRIMNET_OUTPUT_PATH` - Output directory (environment variable or CMake variable)
 
-## Integration
-
-Link against the appropriate variant:
-
-```cmake
-# For CPU version
-target_link_libraries(your_target
-    ${SKYRIMNET_OUTPUT_PATH}/cpu/lib/whisper_cpu.lib
-    ${SKYRIMNET_OUTPUT_PATH}/cpu/lib/ggml_cpu.lib
-)
-target_include_directories(your_target PRIVATE
-    ${SKYRIMNET_OUTPUT_PATH}/cpu/include
-)
-
-# For CUDA version
-target_link_libraries(your_target
-    ${SKYRIMNET_OUTPUT_PATH}/cuda/lib/whisper_cuda.lib
-    ${SKYRIMNET_OUTPUT_PATH}/cuda/lib/ggml_cuda.lib
-    # Also link CUDA libraries
-)
-target_include_directories(your_target PRIVATE
-    ${SKYRIMNET_OUTPUT_PATH}/cuda/include
-)
 ```
 
 ## Notes

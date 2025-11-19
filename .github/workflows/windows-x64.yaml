@@ -72,36 +72,63 @@ jobs:
           cmake --version
           ninja --version
 
-      - name: Build whisper.cpp for Windows x64 Release
+      - name: Build whisper.cpp for Windows x64 Release - CUDA variant
         shell: bash
         run: |
           export CMAKE_CXX_COMPILER_LAUNCHER=ccache
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
           cmake --version
           
-          # Configure
-          cmake -S . --preset=release
-          
-          # Build
-          cmake --build --preset=release
+          # Configure and build CUDA variant
+          cmake -S . --preset=release-cuda
+          cmake --build --preset=release-cuda
 
-      - name: Collect result
+      - name: Build whisper.cpp for Windows x64 Release - CPU-only variant
         shell: bash
         run: |
-          ls -lh build/release/whisper.cpp_static/
-          ls -lh build/release/whisper.cpp_static/include
-          ls -lh build/release/whisper.cpp_static/lib
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          
+          # Configure and build CPU-only variant
+          cmake -S . --preset=release-cpu
+          cmake --build --preset=release-cpu
 
-          dst=whisper-cpp-win-x64-static_lib-${{ env.WHISPER_VERSION }}
-          mkdir $dst
-          cp -r build/release/whisper.cpp_static/* $dst/
+      - name: Collect results
+        shell: bash
+        run: |
+          # Collect CUDA variant
+          echo "Collecting CUDA variant..."
+          ls -lh build/release-cuda/whisper.cpp_static/
+          ls -lh build/release-cuda/whisper.cpp_static/include
+          ls -lh build/release-cuda/whisper.cpp_static/lib
+
+          dst_cuda=whisper-cpp-win-x64-cuda-static_lib-${{ env.WHISPER_VERSION }}
+          mkdir $dst_cuda
+          cp -r build/release-cuda/whisper.cpp_static/* $dst_cuda/
+          
+          # Collect CPU-only variant
+          echo "Collecting CPU-only variant..."
+          ls -lh build/release-cpu/whisper.cpp_static/
+          ls -lh build/release-cpu/whisper.cpp_static/include
+          ls -lh build/release-cpu/whisper.cpp_static/lib
+
+          dst_cpu=whisper-cpp-win-x64-cpu-static_lib-${{ env.WHISPER_VERSION }}
+          mkdir $dst_cpu
+          cp -r build/release-cpu/whisper.cpp_static/* $dst_cpu/
 
       - name: zip results
         shell: bash
         run: |
-          dst=whisper-cpp-win-x64-static_lib-${{ env.WHISPER_VERSION }}
-          7z a -tzip $dst.zip $dst
-          ls -lh
+          # Zip CUDA variant
+          dst_cuda=whisper-cpp-win-x64-cuda-static_lib-${{ env.WHISPER_VERSION }}
+          7z a -tzip $dst_cuda.zip $dst_cuda
+          
+          # Zip CPU-only variant
+          dst_cpu=whisper-cpp-win-x64-cpu-static_lib-${{ env.WHISPER_VERSION }}
+          7z a -tzip $dst_cpu.zip $dst_cpu
+          
+          echo "Created archives:"
+          ls -lh *.zip
 
       - name: Upload v${{ env.WHISPER_VERSION }}
         uses: svenstaro/upload-release-action@v2
@@ -115,5 +142,5 @@ jobs:
 
       - uses: actions/upload-artifact@v5
         with:
-          name: whisper-cpp-win-x64-static_lib
-          path: whisper-cpp-win-x64-static_lib*.zip
+          name: whisper-cpp-win-x64-all-variants
+          path: whisper-cpp-win-x64-*-static_lib*.zip

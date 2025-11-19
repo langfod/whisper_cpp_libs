@@ -73,43 +73,74 @@ jobs:
           cmake --version
           ninja --version
 
-      - name: Build whisper.cpp for Windows x64 ${{ matrix.build_type }}
+      - name: Build whisper.cpp for Windows x64 ${{ matrix.build_type }} - CUDA variant
         shell: bash
         run: |
           export CMAKE_CXX_COMPILER_LAUNCHER=ccache
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
           cmake --version
           
-          # Map build type to preset (Debug -> debug)
+          # Map build type to preset (Debug -> debug-cuda)
           BUILD_PRESET=$(echo "${{ matrix.build_type }}" | tr '[:upper:]' '[:lower:]')
-          echo "Using preset: $BUILD_PRESET"
+          echo "Building CUDA variant: ${BUILD_PRESET}-cuda"
           
-          # Configure
-          cmake -S . --preset=$BUILD_PRESET
-          
-          # Build
-          cmake --build --preset=$BUILD_PRESET
+          # Configure and build CUDA variant
+          cmake -S . --preset=${BUILD_PRESET}-cuda
+          cmake --build --preset=${BUILD_PRESET}-cuda
 
-      - name: Collect result
+      - name: Build whisper.cpp for Windows x64 ${{ matrix.build_type }} - CPU-only variant
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          
+          # Map build type to preset (Debug -> debug-cpu)
+          BUILD_PRESET=$(echo "${{ matrix.build_type }}" | tr '[:upper:]' '[:lower:]')
+          echo "Building CPU-only variant: ${BUILD_PRESET}-cpu"
+          
+          # Configure and build CPU-only variant
+          cmake -S . --preset=${BUILD_PRESET}-cpu
+          cmake --build --preset=${BUILD_PRESET}-cpu
+
+      - name: Collect results
         shell: bash
         run: |
           # Map build type to directory name
           BUILD_DIR=$(echo "${{ matrix.build_type }}" | tr '[:upper:]' '[:lower:]')
           
-          ls -lh build/$BUILD_DIR/whisper.cpp_static/
-          ls -lh build/$BUILD_DIR/whisper.cpp_static/include
-          ls -lh build/$BUILD_DIR/whisper.cpp_static/lib
+          # Collect CUDA variant
+          echo "Collecting CUDA variant..."
+          ls -lh build/${BUILD_DIR}-cuda/whisper.cpp_static/
+          ls -lh build/${BUILD_DIR}-cuda/whisper.cpp_static/include
+          ls -lh build/${BUILD_DIR}-cuda/whisper.cpp_static/lib
 
-          dst=whisper-cpp-win-x64-static_lib-${{ matrix.build_type }}-${{ env.WHISPER_VERSION }}
-          mkdir $dst
-          cp -r build/$BUILD_DIR/whisper.cpp_static/* $dst/
+          dst_cuda=whisper-cpp-win-x64-cuda-static_lib-${{ matrix.build_type }}-${{ env.WHISPER_VERSION }}
+          mkdir $dst_cuda
+          cp -r build/${BUILD_DIR}-cuda/whisper.cpp_static/* $dst_cuda/
+          
+          # Collect CPU-only variant
+          echo "Collecting CPU-only variant..."
+          ls -lh build/${BUILD_DIR}-cpu/whisper.cpp_static/
+          ls -lh build/${BUILD_DIR}-cpu/whisper.cpp_static/include
+          ls -lh build/${BUILD_DIR}-cpu/whisper.cpp_static/lib
+
+          dst_cpu=whisper-cpp-win-x64-cpu-static_lib-${{ matrix.build_type }}-${{ env.WHISPER_VERSION }}
+          mkdir $dst_cpu
+          cp -r build/${BUILD_DIR}-cpu/whisper.cpp_static/* $dst_cpu/
 
       - name: zip results
         shell: bash
         run: |
-          dst=whisper-cpp-win-x64-static_lib-${{ matrix.build_type }}-${{ env.WHISPER_VERSION }}
-          7z a -tzip $dst.zip $dst
-          ls -lh
+          # Zip CUDA variant
+          dst_cuda=whisper-cpp-win-x64-cuda-static_lib-${{ matrix.build_type }}-${{ env.WHISPER_VERSION }}
+          7z a -tzip $dst_cuda.zip $dst_cuda
+          
+          # Zip CPU-only variant
+          dst_cpu=whisper-cpp-win-x64-cpu-static_lib-${{ matrix.build_type }}-${{ env.WHISPER_VERSION }}
+          7z a -tzip $dst_cpu.zip $dst_cpu
+          
+          echo "Created archives:"
+          ls -lh *.zip
 
       - name: Upload v${{ env.WHISPER_VERSION }}
         uses: svenstaro/upload-release-action@v2
@@ -123,5 +154,5 @@ jobs:
 
       - uses: actions/upload-artifact@v5
         with:
-          name: whisper-cpp-win-x64-static_lib-${{ matrix.build_type }}
-          path: whisper-cpp-win-x64-static_lib*.zip
+          name: whisper-cpp-win-x64-all-variants-${{ matrix.build_type }}
+          path: whisper-cpp-win-x64-*-static_lib*.zip
