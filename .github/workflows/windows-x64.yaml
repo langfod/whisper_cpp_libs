@@ -140,7 +140,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: v${{ env.WHISPER_VERSION }}
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: whisper-cpp-win-x64-all-variants
           path: whisper-cpp-win-x64-*-static_lib*.zip
