@@ -59,7 +59,7 @@ jobs:
           git checkout v${{ env.WHISPER_VERSION }}
 
       - name: Setup CUDA Toolkit
-        uses: Jimver/cuda-toolkit@v0.2.29
+        uses: Jimver/cuda-toolkit@v0.2.30
         with:
           cuda: '12.9.1'
           method: 'network'
