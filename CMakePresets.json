@@ -7,10 +7,9 @@
   },
   "configurePresets": [
     {
-      "name": "release-cuda",
+      "name": "base",
       "displayName": "Release with CUDA",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/release-cuda",
+      "generator": "Ninja",      
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -20,16 +19,11 @@
         "CMAKE_CXX_COMPILER": "cl.exe",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CUDA_ENABLED": "ON",
         "CMAKE_CUDA_RUNTIME_LIBRARY": "Static",
         "GGML_CUDA_FORCE_VERSION": "12.9",
         "CUDA_TOOLKIT_ROOT_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.9",
-
-        "GGML_NATIVE": "ON",
-        "GGML_AVX2": "ON",
-        "GGML_FMA": "ON",
-        "GGML_F16C": "ON",
-        "GGML_BMI2": "ON",
+        "CMAKE_CUDA_ARCHITECTURES": "61-real;72-real;75-real;86-real;80-virtual;89-real;120-real",
+        "DGGML_CUDA_FORCE_MMQ": "ON",
 
         "CMAKE_CXX_FLAGS": "/permissive- /Zc:preprocessor /EHsc /MP16 /W4 /utf-8 /bigobj /favor:blend",
         "CMAKE_C_FLAGS_RELEASE": "/O2 /Ob2 /DNDEBUG /DWIN32_LEAN_AND_MEAN /DNOMINMAX /DUNICODE /D_UNICODE",
@@ -41,142 +35,34 @@
       }
     },
     {
-      "name": "release-cpu",
-      "displayName": "Release CPU-only",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/release-cpu",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
+      "name": "release-static",
+      "displayName": "Release with CUDA",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/release-static",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_COMPILER": "cl.exe",
-        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CUDA_ENABLED": "OFF",
-
-        "GGML_NATIVE": "ON",
-        "GGML_AVX2": "ON",
-        "GGML_FMA": "ON",
-        "GGML_F16C": "ON",
-        "GGML_BMI2": "ON",
-
-        "CMAKE_CXX_FLAGS": "/permissive- /Zc:preprocessor /EHsc /MP16 /W4 /utf-8 /bigobj /favor:blend",
-        "CMAKE_C_FLAGS_RELEASE": "/O2 /Ob2 /DNDEBUG /DWIN32_LEAN_AND_MEAN /DNOMINMAX /DUNICODE /D_UNICODE",
-        "CMAKE_CXX_FLAGS_RELEASE": "/O2 /Ob2 /DNDEBUG /DWIN32_LEAN_AND_MEAN /DNOMINMAX /DUNICODE /D_UNICODE /bigobj",
-
-        "CMAKE_CXX_STANDARD": "20",
-        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
-        "CMAKE_CXX_EXTENSIONS": "OFF"
+        "DYNAMIC_LIBS": "OFF"
       }
     },
     {
-      "name": "release",
-      "inherits": "release-cuda",
-      "displayName": "Release (default: CUDA)"
-    },
-    {
-      "name": "debug-cuda",
-      "displayName": "Debug with CUDA",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/debug-cuda",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
+      "name": "release-dynamic",
+      "displayName": "Release with CUDA",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/release-dynamic",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_COMPILER": "cl.exe",
-        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CUDA_ENABLED": "ON",
-        "CMAKE_CUDA_RUNTIME_LIBRARY": "Static",
-        "GGML_CUDA_FORCE_VERSION": "12.9",
-        "CUDA_TOOLKIT_ROOT_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.9",
-
-        "GGML_NATIVE": "ON",
-        "GGML_AVX2": "ON",
-        "GGML_FMA": "ON",
-        "GGML_F16C": "ON",
-        "GGML_BMI2": "ON",
-
-        "CMAKE_CXX_FLAGS": "/permissive- /Zc:preprocessor /EHsc /MP16 /W4 /utf-8 /bigobj /favor:blend",
-        "CMAKE_C_FLAGS_DEBUG": "/Zi /Ob0 /Od /RTC1 /DWIN32_LEAN_AND_MEAN /DNOMINMAX /DUNICODE /D_UNICODE",
-        "CMAKE_CXX_FLAGS_DEBUG": "/Zi /Ob0 /Od /RTC1 /DWIN32_LEAN_AND_MEAN /DNOMINMAX /DUNICODE /D_UNICODE /bigobj",
-
-        "CMAKE_CXX_STANDARD": "20",
-        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
-        "CMAKE_CXX_EXTENSIONS": "OFF"
+        "DYNAMIC_LIBS": "ON"
       }
-    },
-    {
-      "name": "debug-cpu",
-      "displayName": "Debug CPU-only",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/debug-cpu",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_COMPILER": "cl.exe",
-        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CUDA_ENABLED": "OFF",
-
-        "GGML_NATIVE": "ON",
-        "GGML_AVX2": "ON",
-        "GGML_FMA": "ON",
-        "GGML_F16C": "ON",
-        "GGML_BMI2": "ON",
-
-        "CMAKE_CXX_FLAGS": "/permissive- /Zc:preprocessor /EHsc /MP16 /W4 /utf-8 /bigobj /favor:blend",
-        "CMAKE_C_FLAGS_DEBUG": "/Zi /Ob0 /Od /RTC1 /DWIN32_LEAN_AND_MEAN /DNOMINMAX /DUNICODE /D_UNICODE",
-        "CMAKE_CXX_FLAGS_DEBUG": "/Zi /Ob0 /Od /RTC1 /DWIN32_LEAN_AND_MEAN /DNOMINMAX /DUNICODE /D_UNICODE /bigobj",
-
-        "CMAKE_CXX_STANDARD": "20",
-        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
-        "CMAKE_CXX_EXTENSIONS": "OFF"
-      }
-    },
-    {
-      "name": "debug",
-      "inherits": "debug-cuda",
-      "displayName": "Debug (default: CUDA)"
     }
   ],
   "buildPresets": [
     {
-      "name": "release-cuda",
-      "configurePreset": "release-cuda",
+      "name": "release-static",
+      "configurePreset": "release-static",
       "displayName": "Build Release with CUDA"
     },
     {
-      "name": "release-cpu",
-      "configurePreset": "release-cpu",
-      "displayName": "Build Release CPU-only"
-    },
-    {
-      "name": "release",
-      "configurePreset": "release",
-      "displayName": "Build Release (default: CUDA)"
-    },
-    {
-      "name": "debug-cuda",
-      "configurePreset": "debug-cuda",
-      "displayName": "Build Debug with CUDA"
-    },
-    {
-      "name": "debug-cpu",
-      "configurePreset": "debug-cpu",
-      "displayName": "Build Debug CPU-only"
-    },
-    {
-      "name": "debug",
-      "configurePreset": "debug",
-      "displayName": "Build Debug (default: CUDA)"
+      "name": "release-dynamic",
+      "configurePreset": "release-dynamic",
+      "displayName": "Build Release dynamic ggml"
     }
   ]
 }

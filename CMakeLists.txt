@@ -1,25 +1,13 @@
 cmake_minimum_required(VERSION 3.18)
 
-# CUDA support option - can be set via command line: -DCUDA_ENABLED=OFF
-option(CUDA_ENABLED "Enable CUDA support" ON)
-
-if(CUDA_ENABLED)
-    project(WhisperCppLibs VERSION 1.0 LANGUAGES C CXX CUDA)
-    message(STATUS "Building WITH CUDA support")
-else()
-    project(WhisperCppLibs VERSION 1.0 LANGUAGES C CXX)
-    message(STATUS "Building WITHOUT CUDA support")
-endif()
-
-# Output directory
-set(OUTPUT_BASE_DIR "${CMAKE_BINARY_DIR}/whisper.cpp_static")
-
 # Common settings - MUST match application's C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static libraries only" FORCE)
+
+project(WhisperCppLibs VERSION 1.0 LANGUAGES C CXX CUDA)
+
 
 # Static MSVC runtime library - CRITICAL for compatibility
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "MSVC runtime library" FORCE)
@@ -53,26 +41,40 @@ if(MSVC)
         string(REGEX REPLACE "/EH[scra-z]+" "" ${flag_var} "${${flag_var}}")
         string(APPEND ${flag_var} " /EHa /bigobj")
         # Replace dynamic with static runtime (/MD -> /MT)
-        string(REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+        #string(REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
     endforeach()
 endif()
 
 # CUDA configuration
-if(CUDA_ENABLED)
-    # Enable CUDA support
-    set(GGML_CUDA ON CACHE BOOL "Enable CUDA support" FORCE)
-    
-    # Static CUDA runtime library - CRITICAL for compatibility
-    set(CMAKE_CUDA_RUNTIME_LIBRARY "Static" CACHE STRING "CUDA runtime library" FORCE)
-    
-    # CUDA flags matching application
-    set(CMAKE_CUDA_FLAGS "-allow-unsupported-compiler -Wno-deprecated-gpu-targets" CACHE STRING "CUDA flags" FORCE)
-    set(CMAKE_CUDA_ARCHITECTURES "all-major" CACHE STRING "CUDA architectures" FORCE)
+# Enable CUDA support
+set(GGML_CUDA ON CACHE BOOL "Enable CUDA support" FORCE)
+set(CMAKE_CUDA_FLAGS "-allow-unsupported-compiler -Wno-deprecated-gpu-targets" CACHE STRING "CUDA flags" FORCE)
+set(CMAKE_CUDA_RUNTIME_LIBRARY "Static" CACHE STRING "CUDA runtime library" FORCE)
+set(GGML_AMX_VNNI ON CACHE BOOL "Enable AMX VNNI support" FORCE)
+
+set(GGML_AVX2 ON CACHE BOOL "Enable AVX2 support" FORCE)
+set(GGML_FMA ON CACHE BOOL "Enable FMA support" FORCE)
+set(GGML_F16C ON CACHE BOOL "Enable F16C support" FORCE)
+set(GGML_BMI2 ON CACHE BOOL "Enable BMI2 support" FORCE)
+# Vulkan configuration
+if(DYNAMIC_LIBS)
+    set(OUTPUT_BASE_DIR "${CMAKE_BINARY_DIR}/whisper.cpp_dynamic")
+    set(GGML_BACKEND_DL ON CACHE BOOL "Build backends as dynamically loaded plugins" FORCE)
+    set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries only" FORCE)
+    set(GGML_NATIVE OFF CACHE BOOL "Disable native support" FORCE)
+    set(GGML_VULKAN ON CACHE BOOL "Enable Vulkan support" FORCE)
+    set(GGML_KOMPUTE ON CACHE BOOL "Enable Kompute support" FORCE)
+    set(GGML_OPENCL ON CACHE BOOL "Enable OpenCL support" FORCE)
+    message(STATUS "Building WITH Vulkan support")
 else()
-    # Disable CUDA support
-    set(GGML_CUDA OFF CACHE BOOL "Disable CUDA support" FORCE)
-    set(CMAKE_CUDA_FLAGS "" CACHE STRING "Clear CUDA flags" FORCE)
-    add_compile_definitions(WHISPER_USE_CUBLAS=0)
+set(OUTPUT_BASE_DIR "${CMAKE_BINARY_DIR}/whisper.cpp_static")
+    set(GGML_BACKEND_DL OFF CACHE BOOL "Build backends as dynamically loaded plugins" FORCE)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static libraries only" FORCE)
+    set(GGML_NATIVE ON CACHE BOOL "Enable native support" FORCE)
+    set(GGML_VULKAN OFF CACHE BOOL "Disable Vulkan support" FORCE)
+    set(GGML_KOMPUTE OFF CACHE BOOL "Disable Kompute support" FORCE)
+    set(GGML_OPENCL OFF CACHE BOOL "Disable OpenCL support" FORCE)
+    message(STATUS "Building WITHOUT Vulkan support")
 endif()
 
 # Set output directory
@@ -153,7 +155,65 @@ if(TARGET ggml-cuda)
     )
 endif()
 
+# Configure ggml-vulkan target if it exists
+if(TARGET ggml-vulkan)
+    add_dependencies(copy_headers ggml-vulkan)
+    
+    set_target_properties(ggml-vulkan PROPERTIES
+        OUTPUT_NAME "ggml-vulkan"
+        ARCHIVE_OUTPUT_DIRECTORY "${VARIANT_OUTPUT_DIR}/lib"
+        LIBRARY_OUTPUT_DIRECTORY "${VARIANT_OUTPUT_DIR}/lib"
+        RUNTIME_OUTPUT_DIRECTORY "${VARIANT_OUTPUT_DIR}/bin"
+    )
+endif()
 
+# Configure ggml-opencl target if it exists
+if(TARGET ggml-opencl)
+    add_dependencies(copy_headers ggml-opencl)
+    
+    set_target_properties(ggml-opencl PROPERTIES
+        OUTPUT_NAME "ggml-opencl"
+        ARCHIVE_OUTPUT_DIRECTORY "${VARIANT_OUTPUT_DIR}/lib"
+        LIBRARY_OUTPUT_DIRECTORY "${VARIANT_OUTPUT_DIR}/lib"
+        RUNTIME_OUTPUT_DIRECTORY "${VARIANT_OUTPUT_DIR}/bin"
+    )
+endif()
+
+# Configure ggml-kompute target if it exists
+if(TARGET ggml-kompute)
+    add_dependencies(copy_headers ggml-kompute)
+    
+    set_target_properties(ggml-kompute PROPERTIES
+        OUTPUT_NAME "ggml-kompute"
+        ARCHIVE_OUTPUT_DIRECTORY "${VARIANT_OUTPUT_DIR}/lib"
+        LIBRARY_OUTPUT_DIRECTORY "${VARIANT_OUTPUT_DIR}/lib"
+        RUNTIME_OUTPUT_DIRECTORY "${VARIANT_OUTPUT_DIR}/bin"
+    )
+endif()
+
+# Configure ggml-sycl target if it exists
+if(TARGET ggml-sycl)
+    add_dependencies(copy_headers ggml-sycl)
+    
+    set_target_properties(ggml-sycl PROPERTIES
+        OUTPUT_NAME "ggml-sycl"
+        ARCHIVE_OUTPUT_DIRECTORY "${VARIANT_OUTPUT_DIR}/lib"
+        LIBRARY_OUTPUT_DIRECTORY "${VARIANT_OUTPUT_DIR}/lib"
+        RUNTIME_OUTPUT_DIRECTORY "${VARIANT_OUTPUT_DIR}/bin"
+    )
+endif()
+
+# Post-build cleanup: remove .exp files (linker intermediates not needed for distribution)
+if(DYNAMIC_LIBS)
+    if(WIN32)
+        add_custom_target(cleanup_exp_files ALL
+            COMMAND powershell -Command "Remove-Item -Path '${VARIANT_OUTPUT_DIR}/lib/*.exp' -Force -ErrorAction SilentlyContinue"
+            COMMAND powershell -Command "Remove-Item -Path '${VARIANT_OUTPUT_DIR}/bin/*.exp' -Force -ErrorAction SilentlyContinue"
+            COMMENT "Cleaning up .exp files"
+        )
+        add_dependencies(cleanup_exp_files copy_headers)
+    endif()
+endif()
 
 # Add definitions to suppress warnings
 add_definitions(-D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING)
