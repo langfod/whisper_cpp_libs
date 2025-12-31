@@ -5,7 +5,7 @@ param(
     [string]$variant = "cuda"
 )
 
-#$env:CMAKE_BUILD_PARALLEL_LEVEL=$threads
+$env:CMAKE_BUILD_PARALLEL_LEVEL=$threads
 
 
 

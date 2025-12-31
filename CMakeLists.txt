@@ -48,7 +48,7 @@ endif()
 # CUDA configuration
 # Enable CUDA support
 set(GGML_CUDA ON CACHE BOOL "Enable CUDA support" FORCE)
-set(CMAKE_CUDA_FLAGS "-allow-unsupported-compiler -Wno-deprecated-gpu-targets" CACHE STRING "CUDA flags" FORCE)
+set(CMAKE_CUDA_FLAGS "-allow-unsupported-compiler -Wno-deprecated-gpu-targets --diag-suppress=177 --diag-suppress=550 --diag-suppress=221" CACHE STRING "CUDA flags" FORCE)
 set(CMAKE_CUDA_RUNTIME_LIBRARY "Static" CACHE STRING "CUDA runtime library" FORCE)
 set(GGML_AMX_VNNI ON CACHE BOOL "Enable AMX VNNI support" FORCE)
 
