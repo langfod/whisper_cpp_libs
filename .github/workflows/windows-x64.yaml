@@ -48,8 +48,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'          
+          python-version: ${{ matrix.python-version }}        
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
