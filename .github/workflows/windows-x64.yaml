@@ -48,7 +48,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}        
+          python-version: ${{ matrix.python-version }}
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -67,6 +67,7 @@ jobs:
           cuda: '12.9.1'
           method: 'network'
           sub-packages: '["nvcc", "cudart", "cublas", "cublas_dev", "thrust", "visual_studio_integration"]'
+          use-github-cache: true
 
       - name: Install dependencies
         shell: bash
