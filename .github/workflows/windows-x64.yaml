@@ -75,6 +75,16 @@ jobs:
           cmake --version
           ninja --version
 
+      - name: Build whisper.cpp for Windows x64 Release - dynamic variant
+        shell: bash
+        run: |
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          
+          # Configure and build dynamic variant
+          cmake -S . --preset=release-dynamic
+          cmake --build --preset=release-dynamic --parallel
+
       - name: Build whisper.cpp for Windows x64 Release - static variant
         shell: bash
         run: |
@@ -84,17 +94,7 @@ jobs:
           
           # Configure and build static variant
           cmake -S . --preset=release-static
-          cmake --build --preset=release-static
-
-      - name: Build whisper.cpp for Windows x64 Release - dynamic variant
-        shell: bash
-        run: |
-          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
-          
-          # Configure and build dynamic variant
-          cmake -S . --preset=release-dynamic
-          cmake --build --preset=release-dynamic
+          cmake --build --preset=release-static --parallel
 
       - name: Collect results
         shell: bash
