@@ -76,62 +76,70 @@ jobs:
           ninja --version
 
       - name: Build whisper.cpp for Windows x64 Release - dynamic variant
-        shell: bash
+        shell: pwsh
         run: |
-          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          # Debug: Show Vulkan SDK location
+          Write-Host "VULKAN_SDK=$env:VULKAN_SDK"
+          Write-Host "VULKAN_SDK_VERSION=$env:VULKAN_SDK_VERSION"
+          if (Test-Path $env:VULKAN_SDK) {
+            Get-ChildItem $env:VULKAN_SDK
+          } else {
+            Write-Host "VULKAN_SDK directory not found"
+          }
           
           # Configure and build dynamic variant
           cmake -S . --preset=release-dynamic
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cmake --build --preset=release-dynamic --parallel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build whisper.cpp for Windows x64 Release - static variant
-        shell: bash
+        shell: pwsh
         run: |
-          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
           cmake --version
           
           # Configure and build static variant
           cmake -S . --preset=release-static
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cmake --build --preset=release-static --parallel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Collect results
-        shell: bash
+        shell: pwsh
         run: |
           # Collect dynamic variant
-          echo "Collecting dynamic variant..."
-          ls -lh build/release-dynamic/whisper.cpp_dynamic/
-          ls -lh build/release-dynamic/whisper.cpp_dynamic/include
-          ls -lh build/release-dynamic/whisper.cpp_dynamic/lib || true
-          ls -lh build/release-dynamic/whisper.cpp_dynamic/bin || true
-          dst_dynamic=whisper-cpp-win-x64-dynamic-lib-${{ env.WHISPER_VERSION }}
-          mkdir -p $dst_dynamic
-          cp -r build/release-dynamic/whisper.cpp_dynamic/* $dst_dynamic/
+          Write-Host "Collecting dynamic variant..."
+          Get-ChildItem build/release-dynamic/whisper.cpp_dynamic/
+          Get-ChildItem build/release-dynamic/whisper.cpp_dynamic/include
+          Get-ChildItem build/release-dynamic/whisper.cpp_dynamic/lib -ErrorAction SilentlyContinue
+          Get-ChildItem build/release-dynamic/whisper.cpp_dynamic/bin -ErrorAction SilentlyContinue
+          $dst_dynamic = "whisper-cpp-win-x64-dynamic-lib-${{ env.WHISPER_VERSION }}"
+          New-Item -ItemType Directory -Force -Path $dst_dynamic | Out-Null
+          Copy-Item -Recurse -Force build/release-dynamic/whisper.cpp_dynamic/* $dst_dynamic/
           
           # Collect static variant
-          echo "Collecting static variant..."
-          ls -lh build/release-static/whisper.cpp_static/
-          ls -lh build/release-static/whisper.cpp_static/include
-          ls -lh build/release-static/whisper.cpp_static/lib
+          Write-Host "Collecting static variant..."
+          Get-ChildItem build/release-static/whisper.cpp_static/
+          Get-ChildItem build/release-static/whisper.cpp_static/include
+          Get-ChildItem build/release-static/whisper.cpp_static/lib
 
-          dst_static=whisper-cpp-win-x64-static-lib-${{ env.WHISPER_VERSION }}
-          mkdir -p $dst_static
-          cp -r build/release-static/whisper.cpp_static/* $dst_static/
+          $dst_static = "whisper-cpp-win-x64-static-lib-${{ env.WHISPER_VERSION }}"
+          New-Item -ItemType Directory -Force -Path $dst_static | Out-Null
+          Copy-Item -Recurse -Force build/release-static/whisper.cpp_static/* $dst_static/
 
       - name: zip results
-        shell: bash
+        shell: pwsh
         run: |
           # Zip dynamic variant
-          dst_dynamic=whisper-cpp-win-x64-dynamic-lib-${{ env.WHISPER_VERSION }}
-          7z a -tzip $dst_dynamic.zip $dst_dynamic
+          $dst_dynamic = "whisper-cpp-win-x64-dynamic-lib-${{ env.WHISPER_VERSION }}"
+          7z a -tzip "$dst_dynamic.zip" $dst_dynamic
           
           # Zip static variant
-          dst_static=whisper-cpp-win-x64-static-lib-${{ env.WHISPER_VERSION }}
-          7z a -tzip $dst_static.zip $dst_static
+          $dst_static = "whisper-cpp-win-x64-static-lib-${{ env.WHISPER_VERSION }}"
+          7z a -tzip "$dst_static.zip" $dst_static
           
-          echo "Created archives:"
-          ls -lh *.zip
+          Write-Host "Created archives:"
+          Get-ChildItem *.zip
 
       - name: Upload v${{ env.WHISPER_VERSION }}
         uses: svenstaro/upload-release-action@v2
