@@ -84,12 +84,16 @@ jobs:
           Write-Host "VULKAN_SDK_VERSION=$env:VULKAN_SDK_VERSION"
           if (Test-Path $env:VULKAN_SDK) {
             Get-ChildItem $env:VULKAN_SDK
+            Get-ChildItem "$env:VULKAN_SDK/Include" -ErrorAction SilentlyContinue
+            Get-ChildItem "$env:VULKAN_SDK/Lib" -ErrorAction SilentlyContinue
           } else {
             Write-Host "VULKAN_SDK directory not found"
           }
           
-          # Configure and build dynamic variant
-          cmake -S . --preset=release-dynamic
+          # Configure and build dynamic variant with explicit Vulkan paths
+          cmake -S . --preset=release-dynamic `
+            -DVulkan_INCLUDE_DIR="$env:VULKAN_SDK/Include" `
+            -DVulkan_LIBRARY="$env:VULKAN_SDK/Lib/vulkan-1.lib"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cmake --build --preset=release-dynamic --parallel
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
