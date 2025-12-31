@@ -66,7 +66,7 @@ jobs:
         with:
           cuda: '12.9.1'
           method: 'network'
-          sub-packages: '["nvcc", "cudart", "cublas", "cublas_dev", "thrust", "visual_studio_integration"]'
+          #sub-packages: '["nvcc", "cudart", "cublas", "cublas_dev", "thrust", "visual_studio_integration"]'
           use-github-cache: true
 
       - name: Install dependencies
