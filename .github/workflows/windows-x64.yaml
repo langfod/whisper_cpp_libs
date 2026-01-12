@@ -169,7 +169,8 @@ jobs:
         with:
           vt_api_key: ${{ secrets.VTOTAL }}
           file_globs: |
-            "whisper-cpp-win-x64-*"
+            "whisper-cpp-win-x64-dynamic-lib-${{ env.WHISPER_VERSION }}/*"
+            "whisper-cpp-win-x64-static-lib-${{ env.WHISPER_VERSION }}/*"
           rate_limit: 4
           update_release: true
           release_heading: '🛡️ **VirusTotal Results:**'
