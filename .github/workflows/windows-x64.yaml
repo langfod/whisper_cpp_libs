@@ -164,19 +164,16 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: v${{ env.WHISPER_VERSION }}
 
-      - name: 'VirusTotal'
-        uses: cssnr/virustotal-action@v1
+  virustotal:
+    name: 'VirusTotal Scan'
+    runs-on: ubuntu-latest
+    needs: [windows_x64]
+    timeout-minutes: 10
+    steps:
+      - name: "VirusTotal"
+        uses: cssnr/virustotal-action@master
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           vt_api_key: ${{ secrets.VTOTAL }}
-          file_globs: |
-            "whisper-cpp-win-x64-dynamic-lib-${{ env.WHISPER_VERSION }}/*"
-            "whisper-cpp-win-x64-static-lib-${{ env.WHISPER_VERSION }}/*"
-          rate_limit: 4
           update_release: true
-          release_heading: '🛡️ **VirusTotal Results:**'
-          summary: true
-
-      - uses: actions/upload-artifact@v6
-        with:
-          name: whisper-cpp-win-x64-all-variants
-          path: whisper-cpp-win-x64-*-lib-*.zip
+          
