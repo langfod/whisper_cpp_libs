@@ -171,9 +171,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: "VirusTotal"
-        uses: cssnr/virustotal-action@master
+        uses: cssnr/virustotal-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           vt_api_key: ${{ secrets.VTOTAL }}
+          file_globs: |
+            "whisper-cpp-win-x64-static-lib-${{ env.WHISPER_VERSION }}.zip"
+            "whisper-cpp-win-x64-dynamic-lib-${{ env.WHISPER_VERSION }}.zip"
           update_release: true
-          
+          release_id: v${{ env.WHISPER_VERSION }}
