@@ -164,12 +164,24 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: v${{ env.WHISPER_VERSION }}
 
+      - name: Upload artifacts for VirusTotal scan
+        uses: actions/upload-artifact@v4
+        with:
+          name: whisper-archives
+          path: "./*.zip"
+          retention-days: 1
+
   virustotal:
     name: 'VirusTotal Scan'
     runs-on: ubuntu-latest
     needs: [windows_x64]
     timeout-minutes: 10
     steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: whisper-archives
+
       - name: "VirusTotal"
         uses: cssnr/virustotal-action@v1
         with:
