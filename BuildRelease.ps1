@@ -1,5 +1,5 @@
 param(
-    [string]$preset = "release-static",
+    [string]$preset = "release-dynamic",
     [int]$threads = 8,
     [ValidateSet("cuda", "cpu", "both")]
     [string]$variant = "cuda"
